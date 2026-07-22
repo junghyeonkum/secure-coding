@@ -2,33 +2,118 @@
 
 Flask, SQLite, Flask-SQLAlchemy, Flask-Login, Flask-WTF로 만든 중고거래 예제입니다. 상품 등록, 1:1 채팅, 사용자 간 송금 확인, 배송 등록, 구매 확정, 리뷰, 신고, 관심상품 기능을 제공합니다.
 
-## 설치
+## 설치 및 실행
+
+### 요구사항
+
+- Python 3.11 이상
+- Git
+
+프로젝트를 내려받습니다.
+
+```bash
+git clone https://github.com/junghyeonkum/secure-coding.git
+cd secure-coding
+```
+
+### Windows PowerShell
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 Copy-Item .env.example .env
-```
 
-`.env`에서는 `SECRET_KEY`, 업로드 경로, 세션 쿠키 설정만 관리합니다.
-
-## 실행
-
-```powershell
 $env:FLASK_APP="manage.py"
 flask init-db
 flask seed
-flask run --host 127.0.0.1 --port 5000
+flask run
 ```
 
-초기 계정은 다음과 같습니다.
+또는 최신 Flask 실행 형식으로 다음 명령을 사용할 수 있습니다.
 
-- 판매자: `seller / Password1!`
-- 구매자: `buyer / Password1!`
-- 관리자: `admin / Admin1234!`
+```powershell
+flask --app manage run
+```
 
-관리자 계정은 `flask seed` 실행 시 생성됩니다. 개발 기본 비밀번호는 `Admin1234!`이며, seed 실행 전에 환경변수로 바꿀 수 있습니다.
+PowerShell에서 가상환경 활성화가 차단되면 다음 명령어를 먼저 실행합니다.
+
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+```
+
+### Windows CMD
+
+```cmd
+python -m venv .venv
+.venv\Scripts\activate.bat
+pip install -r requirements.txt
+copy .env.example .env
+
+set FLASK_APP=manage.py
+flask init-db
+flask seed
+flask run
+```
+
+또는 최신 Flask 실행 형식으로 다음 명령을 사용할 수 있습니다.
+
+```cmd
+flask --app manage run
+```
+
+### macOS / Linux
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env
+
+export FLASK_APP=manage.py
+flask init-db
+flask seed
+flask run
+```
+
+또는 최신 Flask 실행 형식으로 다음 명령을 사용할 수 있습니다.
+
+```bash
+flask --app manage run
+```
+
+실행 후 브라우저에서 다음 주소로 접속합니다.
+
+```text
+http://127.0.0.1:5000
+```
+
+개발 환경에서 HTTPS를 테스트하려면 다음처럼 adhoc SSL을 켜고 직접 실행합니다.
+
+```powershell
+$env:FLASK_ADHOC_SSL="true"
+python manage.py
+```
+
+이 경우 다음 주소로 접속합니다.
+
+```text
+https://127.0.0.1:5000
+```
+
+`.env`에서는 `SECRET_KEY`, 업로드 경로, 세션 쿠키 설정을 관리합니다. 기본 개발 환경에서는 복사한 설정 그대로 실행할 수 있습니다.
+
+`flask init-db`와 `flask seed`는 최초 실행 시에만 필요합니다. 이후에는 가상환경을 활성화한 뒤 `flask run`만 실행하면 됩니다.
+
+## 초기 계정
+
+| 역할 | 아이디 | 비밀번호 |
+|---|---|---|
+| 판매자 | `seller` | `Password1!` |
+| 구매자 | `buyer` | `Password1!` |
+| 관리자 | `admin` | `Admin1234!` |
+
+초기 계정은 개발 및 테스트용입니다. 관리자 계정 정보는 `flask seed` 실행 전에 환경변수로 변경할 수 있습니다.
 
 ```powershell
 $env:ADMIN_USERNAME="admin"
