@@ -1,0 +1,39 @@
+<div class="row row-cols-1 row-cols-sm-2 row-cols-lg-3 row-cols-xl-4 g-3">
+  {% for product in products %}
+    {% set is_sold = product.product_status == "sold" %}
+    <div class="col">
+    <article class="card product-card h-100 position-relative{% if is_sold %} product-card-sold{% endif %}">
+      {% set is_favorite = product.product_id in (favorite_product_ids or []) %}
+      {% if current_user.is_authenticated %}
+        <form class="favorite-toggle-form" method="post" action="{{ url_for('favorites.toggle', product_id=product.product_id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="favorite-button{% if is_favorite %} is-favorite{% endif %}" type="submit" aria-label="관심상품 토글">
+            <span class="favorite-icon">{{ "♥" if is_favorite else "♡" }}</span>
+          </button>
+        </form>
+      {% else %}
+        <a class="favorite-button" href="{{ url_for('auth.login') }}" aria-label="로그인 후 관심상품 추가">♡</a>
+      {% endif %}
+      {% if is_sold %}<span class="badge text-bg-secondary sold-badge">품절</span>{% endif %}
+      <a href="{{ url_for('products.detail', product_id=product.product_id) }}" class="product-image-link product-card-content">
+        {% if product.image_path %}
+          <img class="card-img-top product-image" src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.product_name }}">
+        {% else %}
+          <div class="product-image placeholder-image">이미지 없음</div>
+        {% endif %}
+      </a>
+      <div class="card-body d-flex flex-column product-card-content">
+        <div class="d-flex justify-content-between gap-2 mb-2">
+          <span class="badge text-bg-light border">{{ product.category }}</span>
+          <span class="small text-secondary">조회 {{ product.view_count }}</span>
+        </div>
+        <h3 class="h6 card-title mb-2"><a class="stretched-link text-dark" href="{{ url_for('products.detail', product_id=product.product_id) }}">{{ product.product_name }}</a></h3>
+        <p class="fw-bold text-primary mt-auto mb-1">{{ "{:,}".format(product.price) }}원</p>
+        <p class="small text-secondary mb-0">{{ product_status_label(product.product_status) }}</p>
+      </div>
+    </article>
+    </div>
+  {% else %}
+    <div class="col-12"><div class="alert alert-light border">표시할 상품이 없습니다.</div></div>
+  {% endfor %}
+</div>

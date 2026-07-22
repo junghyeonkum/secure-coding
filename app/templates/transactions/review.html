@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+{% block content %}
+<h1>판매자 평가</h1>
+<form method="post" class="form">
+  {{ form.hidden_tag() }}
+  <label>{{ form.rating.label }} {{ form.rating() }}</label>
+  <label>{{ form.content.label }} {{ form.content(rows=5) }}</label>
+  <button type="submit">평가 등록</button>
+</form>
+{% endblock %}

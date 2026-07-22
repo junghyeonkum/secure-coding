@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h3 mb-3">마이페이지</h1>
+
+<section class="bg-white border rounded-3 p-3 p-md-4 mb-4">
+  <form method="post" class="vstack gap-3">
+    {{ form.hidden_tag() }}
+    <label class="form-label">{{ form.nickname.label }} {{ form.nickname(class_="form-control") }}</label>
+    <label class="form-label">{{ form.introduction.label }} {{ form.introduction(rows=4, class_="form-control") }}</label>
+    <label class="form-label">{{ form.bank_name.label }} {{ form.bank_name(class_="form-control") }}</label>
+    <label class="form-label">{{ form.account_number.label }} {{ form.account_number(class_="form-control") }}</label>
+    <label class="form-label">{{ form.account_holder.label }} {{ form.account_holder(class_="form-control") }}</label>
+    <button class="btn btn-primary align-self-start" type="submit">회원정보 수정</button>
+  </form>
+</section>
+
+<div class="mb-3">
+  <a class="btn btn-outline-primary" href="{{ url_for('favorites.index') }}">관심상품</a>
+</div>
+
+<div class="row g-3">
+  <section class="col-12 col-lg-6">
+    <div class="bg-white border rounded-3 p-3 h-100">
+      <h2 class="h5">내가 등록한 상품</h2>
+      {% set products = selling %}
+      {% include "products/_list_small.html" %}
+    </div>
+  </section>
+
+  <section class="col-12 col-lg-6">
+    <div class="bg-white border rounded-3 p-3 h-100">
+      <h2 class="h5">내 상품에 온 채팅</h2>
+      <div class="list-group list-group-flush">
+        {% for room in selling_rooms %}
+          <a class="list-group-item list-group-item-action px-0" href="{{ url_for('chat.room', room_id=room.room_id) }}">
+            <div class="d-flex justify-content-between gap-2">
+              <span class="fw-semibold">{{ room.product.product_name }}</span>
+              <span class="text-secondary small">구매자 {{ room.buyer.nickname }}</span>
+            </div>
+          </a>
+        {% else %}
+          <p class="text-secondary mb-0">내 상품에 온 채팅이 없습니다.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="col-12 col-lg-6">
+    <div class="bg-white border rounded-3 p-3 h-100">
+      <h2 class="h5">내가 문의한 채팅</h2>
+      <div class="list-group list-group-flush">
+        {% for room in buying_rooms %}
+          <a class="list-group-item list-group-item-action px-0" href="{{ url_for('chat.room', room_id=room.room_id) }}">
+            <div class="d-flex justify-content-between gap-2">
+              <span class="fw-semibold">{{ room.product.product_name }}</span>
+              <span class="text-secondary small">판매자 {{ room.seller.nickname }}</span>
+            </div>
+          </a>
+        {% else %}
+          <p class="text-secondary mb-0">문의한 채팅이 없습니다.</p>
+        {% endfor %}
+      </div>
+    </div>
+  </section>
+
+  <section class="col-12 col-lg-6">
+    <div class="bg-white border rounded-3 p-3 h-100">
+      <h2 class="h5">구매 내역</h2>
+      {% for t in purchases %}
+        <p><a href="{{ url_for('transactions.detail', transaction_id=t.transaction_id) }}">{{ t.product.product_name }}</a> · <span class="badge text-bg-light border">{{ transaction_status_label(t.transaction_status) }}</span></p>
+      {% else %}
+        <p class="text-secondary">구매 내역이 없습니다.</p>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="col-12 col-lg-6">
+    <div class="bg-white border rounded-3 p-3 h-100">
+      <h2 class="h5">판매 내역</h2>
+      {% for t in sales %}
+        <p><a href="{{ url_for('transactions.detail', transaction_id=t.transaction_id) }}">{{ t.product.product_name }}</a> · <span class="badge text-bg-light border">{{ transaction_status_label(t.transaction_status) }}</span></p>
+      {% else %}
+        <p class="text-secondary">판매 내역이 없습니다.</p>
+      {% endfor %}
+    </div>
+  </section>
+</div>
+{% endblock %}

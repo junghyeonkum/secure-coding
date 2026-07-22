@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h3 mb-3">관리자 대시보드</h1>
+<div class="row g-3 mb-4">
+  <div class="col-6 col-lg-3"><div class="bg-white border rounded-3 p-3"><p class="text-secondary mb-1">처리 대기 신고</p><p class="h3 mb-0">{{ pending_reports }}</p></div></div>
+  <div class="col-6 col-lg-3"><div class="bg-white border rounded-3 p-3"><p class="text-secondary mb-1">제한 사용자</p><p class="h3 mb-0">{{ restricted_users }}</p></div></div>
+  <div class="col-6 col-lg-3"><div class="bg-white border rounded-3 p-3"><p class="text-secondary mb-1">차단 사용자</p><p class="h3 mb-0">{{ blocked_users }}</p></div></div>
+  <div class="col-6 col-lg-3"><div class="bg-white border rounded-3 p-3"><p class="text-secondary mb-1">차단 상품</p><p class="h3 mb-0">{{ blocked_products }}</p></div></div>
+</div>
+<a class="btn btn-primary" href="{{ url_for('admin.reports') }}">신고 관리</a>
+{% endblock %}

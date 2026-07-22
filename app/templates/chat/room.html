@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="h3 mb-3">1:1 채팅 - {{ room.product.product_name }}</h1>
+<div class="bg-white border rounded-3 p-3 mb-3 chat-box">
+  {% for message in messages %}
+    <div class="border-bottom py-2">
+      <strong>{{ message.sender.nickname }}</strong>
+      <span class="text-secondary small">{{ message.created_at.strftime("%Y-%m-%d %H:%M") }}</span>
+      <p class="mb-0">{{ message.content }}</p>
+    </div>
+  {% else %}
+    <p class="text-secondary mb-0">아직 메시지가 없습니다.</p>
+  {% endfor %}
+</div>
+<form method="post" class="bg-white border rounded-3 p-3 vstack gap-3">
+  {{ form.hidden_tag() }}
+  <label class="form-label">{{ form.content.label }} {{ form.content(rows=3, class_="form-control") }}</label>
+  <button class="btn btn-primary align-self-start" type="submit">전송</button>
+</form>
+{% endblock %}

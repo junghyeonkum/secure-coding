@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">관심상품</h1>
+  <a class="btn btn-outline-primary" href="{{ url_for('products.list_products') }}">상품 목록</a>
+</div>
+<div class="vstack gap-3">
+  {% for favorite in favorites %}
+    {% set product = favorite.product %}
+    {% set is_sold = product.product_status == "sold" %}
+    <article class="bg-white border rounded-3 p-3 favorite-row{% if is_sold %} product-card-sold{% endif %}">
+      <div class="favorite-row-image product-card-content">
+        {% if product.image_path %}
+          <img src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.product_name }}">
+        {% else %}
+          <div class="placeholder-image">이미지 없음</div>
+        {% endif %}
+      </div>
+      <div class="favorite-row-body product-card-content">
+        <div class="d-flex gap-2 align-items-center mb-1">
+          <h2 class="h5 mb-0">{{ product.product_name }}</h2>
+          {% if is_sold %}<span class="badge text-bg-secondary">품절</span>{% endif %}
+        </div>
+        <p class="fw-bold text-primary mb-1">{{ "{:,}".format(product.price) }}원</p>
+        <p class="text-secondary mb-1">상태: {{ product_status_label(product.product_status) }} · 판매자: {{ product.seller.nickname }}</p>
+        <p class="small text-secondary mb-0">등록일: {{ favorite.created_at }}</p>
+      </div>
+      <div class="favorite-row-actions">
+        <a class="btn btn-outline-primary btn-sm" href="{{ url_for('products.detail', product_id=product.product_id) }}">상세 이동</a>
+        <form method="post" action="{{ url_for('favorites.delete', product_id=product.product_id) }}">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+          <button class="btn btn-outline-danger btn-sm" type="submit">삭제</button>
+        </form>
+      </div>
+    </article>
+  {% else %}
+    <div class="alert alert-light border">관심상품이 없습니다.</div>
+  {% endfor %}
+</div>
+{% endblock %}

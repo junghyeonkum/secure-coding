@@ -1,0 +1,22 @@
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.pylint.main]
+ignore = ["migrations"]
+persistent = false
+disable = [
+  "missing-module-docstring",
+  "missing-class-docstring",
+  "missing-function-docstring",
+  "too-few-public-methods",
+  "too-many-arguments",
+  "too-many-instance-attributes",
+  "too-many-return-statements",
+  "too-many-branches",
+  "too-many-locals",
+  "duplicate-code"
+]
+
+[tool.bandit]
+exclude_dirs = ["tests", ".venv", "venv"]

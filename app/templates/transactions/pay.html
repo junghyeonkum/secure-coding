@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="bg-white border rounded-3 p-3 p-md-4 mx-auto payment-panel">
+  <h1 class="h3 mb-3">송금 안내</h1>
+  <p class="alert alert-info">판매자 계좌로 송금한 후 송금 완료 버튼을 눌러주세요.</p>
+  <dl class="row mb-4">
+    <dt class="col-sm-4">상품명</dt>
+    <dd class="col-sm-8">{{ transaction.product.product_name }}</dd>
+    <dt class="col-sm-4">결제 금액</dt>
+    <dd class="col-sm-8 fw-bold text-primary">{{ "{:,}".format(transaction.amount) }}원</dd>
+    <dt class="col-sm-4">판매자</dt>
+    <dd class="col-sm-8">{{ transaction.seller.nickname }}</dd>
+    <dt class="col-sm-4">은행명</dt>
+    <dd class="col-sm-8">{{ transaction.seller.bank_name or "미등록" }}</dd>
+    <dt class="col-sm-4">계좌번호</dt>
+    <dd class="col-sm-8">{{ transaction.seller.account_number or "미등록" }}</dd>
+    <dt class="col-sm-4">예금주</dt>
+    <dd class="col-sm-8">{{ transaction.seller.account_holder or transaction.seller.nickname }}</dd>
+  </dl>
+  {% if transaction.payment.transfer_status == "completed" %}
+    <div class="alert alert-success mb-0">이미 송금 완료로 처리된 거래입니다.</div>
+  {% else %}
+    <form method="post" action="{{ url_for('transactions.transfer_complete', transaction_id=transaction.transaction_id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-primary btn-lg w-100" type="submit">송금 완료</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

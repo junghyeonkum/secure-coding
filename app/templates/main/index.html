@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="rounded-3 bg-white border p-3 p-md-4 mb-4">
+  <div class="d-flex flex-column flex-md-row justify-content-between gap-3 mb-3">
+    <div>
+      <h1 class="h3 mb-1">판매 중인 상품</h1>
+      <p class="text-secondary mb-0">안전한 거래를 위해 결제와 채팅은 상품 상세에서 진행됩니다.</p>
+    </div>
+    {% if current_user.is_authenticated %}
+      <a class="btn btn-primary align-self-md-start" href="{{ url_for('products.create') }}">상품 등록</a>
+    {% endif %}
+  </div>
+  <form class="row g-2 align-items-end" method="get">
+    <div class="col-12 col-md-5">
+      <label class="form-label" for="main-q">검색</label>
+      <input id="main-q" class="form-control" name="q" value="{{ q }}" placeholder="상품명을 입력하세요">
+    </div>
+    <div class="col-12 col-md-3">
+      <label class="form-label" for="main-category">카테고리</label>
+      <select id="main-category" class="form-select" name="category">
+        <option value="">전체</option>
+        {% for c in categories %}<option value="{{ c }}" {% if c == category %}selected{% endif %}>{{ c }}</option>{% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-md-4">
+      <label class="form-label d-block">정렬</label>
+      <div class="btn-group w-100 sort-group" role="group">
+        <button class="btn btn-outline-primary {% if sort == 'latest' %}active{% endif %}" name="sort" value="latest">최신순</button>
+        <button class="btn btn-outline-primary {% if sort == 'price_asc' %}active{% endif %}" name="sort" value="price_asc">가격순</button>
+        <button class="btn btn-outline-primary {% if sort == 'views' %}active{% endif %}" name="sort" value="views">조회순</button>
+      </div>
+    </div>
+  </form>
+</section>
+<section class="mb-4">
+  {% include "products/_grid.html" with context %}
+</section>
+<section class="row g-3">
+  <div class="col-12 col-lg-4"><div class="bg-white border rounded-3 p-3 h-100"><h2 class="h5">최신 상품</h2>{% set products = latest %}{% include "products/_list_small.html" %}</div></div>
+  <div class="col-12 col-lg-4"><div class="bg-white border rounded-3 p-3 h-100"><h2 class="h5">인기 상품</h2>{% set products = popular %}{% include "products/_list_small.html" %}</div></div>
+  <div class="col-12 col-lg-4"><div class="bg-white border rounded-3 p-3 h-100"><h2 class="h5">추천 상품</h2>{% set products = recommendations %}{% include "products/_list_small.html" %}</div></div>
+</section>
+{% endblock %}

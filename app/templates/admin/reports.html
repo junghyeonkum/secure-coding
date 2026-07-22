@@ -1,0 +1,47 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">신고 관리</h1>
+  <a class="btn btn-outline-primary" href="{{ url_for('admin.dashboard') }}">대시보드</a>
+</div>
+<div class="table-responsive bg-white border rounded-3">
+  <table class="table align-middle mb-0">
+    <thead>
+      <tr>
+        <th>신고 번호</th>
+        <th>신고자</th>
+        <th>대상</th>
+        <th>유형</th>
+        <th>사유</th>
+        <th>상태</th>
+        <th>신고 날짜</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for report in reports %}
+        <tr>
+          <td>{{ report.report_id }}</td>
+          <td>{{ report.reporter.nickname if report.reporter else "-" }}</td>
+          <td>
+            {% if report.reported_user %}
+              사용자: {{ report.reported_user.nickname }} (신고 {{ report.reported_user.report_count }}회)
+            {% elif report.reported_product %}
+              상품: {{ report.reported_product.product_name }} (신고 {{ report.reported_product.report_count }}회)
+            {% else %}
+              -
+            {% endif %}
+          </td>
+          <td>{{ report.report_type }}</td>
+          <td>{{ report.reason }}</td>
+          <td>{{ report.report_status }}</td>
+          <td>{{ report.created_at }}</td>
+          <td><a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.report_detail', report_id=report.report_id) }}">상세</a></td>
+        </tr>
+      {% else %}
+        <tr><td colspan="8" class="text-center text-secondary py-4">신고가 없습니다.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="bg-white border rounded-3 p-3 p-md-4">
+  <h1 class="h3 mb-3">거래 상세</h1>
+  <p>상품: {{ transaction.product.product_name }}</p>
+  <p>금액: {{ "{:,}".format(transaction.amount) }}원</p>
+  <p>거래 상태: {{ transaction_status_label(transaction.transaction_status) }}</p>
+  {% if transaction.payment %}
+    <p>송금 상태: {{ payment_status_label(transaction.payment.transfer_status) }}</p>
+    {% if transaction.payment.transfer_time %}<p>송금 완료 시각: {{ transaction.payment.transfer_time }}</p>{% endif %}
+  {% endif %}
+
+  {% if transaction.delivery %}
+    <p>배송 상태: {{ delivery_status_label(transaction.delivery.delivery_status) }}</p>
+    <p>배송 정보: {{ transaction.delivery.courier }} / {{ transaction.delivery.tracking_number }}</p>
+  {% else %}
+    <p>배송 상태: 배송 전</p>
+  {% endif %}
+
+  {% if current_user.user_id == transaction.buyer_id and transaction.payment and transaction.payment.transfer_status == "pending" and transaction.transaction_status == "payment_pending" %}
+    <a class="btn btn-primary mb-3" href="{{ url_for('transactions.pay', transaction_id=transaction.transaction_id) }}">송금 안내 보기</a>
+  {% endif %}
+
+  {% if current_user.user_id == transaction.seller_id and transaction.transaction_status == "preparing_shipment" and transaction.payment and transaction.payment.transfer_status == "completed" %}
+    <form method="post" action="{{ url_for('transactions.ship', transaction_id=transaction.transaction_id) }}" class="vstack gap-2 mb-3">
+      {{ delivery_form.hidden_tag() }}
+      <label class="form-label">{{ delivery_form.courier.label }} {{ delivery_form.courier(class_="form-control") }}</label>
+      <label class="form-label">{{ delivery_form.tracking_number.label }} {{ delivery_form.tracking_number(class_="form-control") }}</label>
+      <button class="btn btn-primary align-self-start" type="submit">운송장 등록</button>
+    </form>
+  {% endif %}
+
+  {% if current_user.user_id == transaction.buyer_id and transaction.transaction_status in ["shipping", "delivered"] %}
+    <form method="post" action="{{ url_for('transactions.confirm', transaction_id=transaction.transaction_id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-primary" type="submit">구매 확정</button>
+    </form>
+  {% endif %}
+
+  {% if current_user.user_id == transaction.buyer_id and transaction.transaction_status == "completed" and not transaction.review %}
+    <a class="btn btn-outline-primary" href="{{ url_for('transactions.review', transaction_id=transaction.transaction_id) }}">판매자 평가</a>
+  {% endif %}
+
+  {% if transaction.transaction_status in ["purchase_requested", "payment_pending", "preparing_shipment"] %}
+    <form method="post" action="{{ url_for('transactions.cancel', transaction_id=transaction.transaction_id) }}" class="mt-3">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <button class="btn btn-outline-danger" type="submit">거래 취소</button>
+    </form>
+  {% endif %}
+</section>
+{% endblock %}

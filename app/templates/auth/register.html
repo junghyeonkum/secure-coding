@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="auth-panel bg-white border rounded-3 p-3 p-md-4 mx-auto">
+<h1 class="h3 mb-3">회원가입</h1>
+<form method="post" class="vstack gap-3">
+  {{ form.hidden_tag() }}
+  <div>
+    <label class="form-label">{{ form.username.label }}</label>
+    {{ form.username(class_="form-control") }}
+    <div class="form-text">아이디는 영문, 숫자, 밑줄만 사용할 수 있습니다.</div>
+  </div>
+  <div>
+    <label class="form-label">{{ form.password.label }}</label>
+    {{ form.password(class_="form-control") }}
+    <div class="form-text">비밀번호는 8자 이상이며 영문과 숫자를 포함해야 합니다.</div>
+  </div>
+  <div>
+    <label class="form-label">{{ form.nickname.label }}</label>
+    {{ form.nickname(class_="form-control") }}
+  </div>
+  <button class="btn btn-primary" type="submit">가입하기</button>
+</form>
+</div>
+{% endblock %}

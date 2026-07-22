@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="bg-white border rounded-3 p-3 p-md-4 mb-4">
+  <h1 class="h3">{{ user.nickname }}</h1>
+  <p class="text-secondary">{{ user.introduction or "소개글이 없습니다." }}</p>
+  <div class="d-flex flex-wrap align-items-center gap-2">
+    <span class="badge text-bg-primary">판매자 신뢰도 {{ user.trust_score }}</span>
+    {% if current_user.is_authenticated and current_user.user_id != user.user_id %}
+      <a class="btn btn-outline-secondary btn-sm" href="{{ url_for('reports.new', reported_user_id=user.user_id) }}">신고하기</a>
+    {% endif %}
+  </div>
+</section>
+<h2 class="h4 mb-3">판매 상품</h2>
+{% include "products/_grid.html" %}
+{% endblock %}

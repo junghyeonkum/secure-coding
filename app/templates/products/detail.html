@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block content %}
+{% set is_sold = product.product_status == "sold" %}
+<article class="bg-white border rounded-3 overflow-hidden{% if is_sold %} product-card-sold{% endif %}">
+  <div class="row g-0">
+    <div class="col-12 col-lg-6 product-card-content">
+      {% if product.image_path %}
+        <img class="detail-image" src="{{ url_for('static', filename=product.image_path) }}" alt="{{ product.product_name }}">
+      {% else %}
+        <div class="detail-image placeholder-image">이미지 없음</div>
+      {% endif %}
+    </div>
+    <div class="col-12 col-lg-6 p-3 p-md-4">
+      <div class="d-flex justify-content-between gap-3 align-items-start">
+        <div class="d-flex gap-2 align-items-center">
+          <span class="badge text-bg-light border mb-2">{{ product.category }}</span>
+          {% if is_sold %}<span class="badge text-bg-secondary mb-2">품절</span>{% endif %}
+        </div>
+        {% if current_user.is_authenticated %}
+          <form class="favorite-toggle-form" method="post" action="{{ url_for('favorites.toggle', product_id=product.product_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="favorite-button static{% if is_favorite %} is-favorite{% endif %}" type="submit" aria-label="관심상품 토글">
+              <span class="favorite-icon">{{ "♥" if is_favorite else "♡" }}</span>
+            </button>
+          </form>
+        {% else %}
+          <a class="favorite-button static" href="{{ url_for('auth.login') }}" aria-label="로그인 후 관심상품 추가">♡</a>
+        {% endif %}
+      </div>
+      <div class="product-card-content">
+        <h1 class="h3">{{ product.product_name }}</h1>
+        <p class="h4 text-primary fw-bold">{{ "{:,}".format(product.price) }}원</p>
+        <p class="text-secondary">조회 {{ product.view_count }} · 상태 {{ product_status_label(product.product_status) }}</p>
+        {% if is_sold %}<div class="alert alert-secondary">품절된 상품입니다.</div>{% endif %}
+        <p class="lh-lg">{{ product.description }}</p>
+        <div class="border rounded-3 p-3 mb-3">
+          판매자 <a href="{{ url_for('users.profile', user_id=product.seller.user_id) }}">{{ product.seller.nickname }}</a>
+          <span class="text-secondary">· 신뢰도 {{ product.seller.trust_score }}</span>
+        </div>
+      </div>
+      {% if current_user.is_authenticated %}
+        <div class="d-flex flex-wrap gap-2">
+        {% if current_user.user_id == product.seller_id %}
+          <a class="btn btn-outline-primary" href="{{ url_for('products.edit', product_id=product.product_id) }}">수정</a>
+          <form method="post" action="{{ url_for('products.delete', product_id=product.product_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-outline-danger" type="submit">삭제</button>
+          </form>
+        {% else %}
+          <form method="post" action="{{ url_for('chat.start', product_id=product.product_id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button class="btn btn-outline-primary" type="submit">1:1 채팅 시작</button>
+          </form>
+          {% if product.product_status == "selling" %}
+            <form method="post" action="{{ url_for('transactions.buy', product_id=product.product_id) }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button class="btn btn-primary" type="submit">구매하기</button>
+            </form>
+          {% endif %}
+          <a class="btn btn-outline-secondary" href="{{ url_for('reports.new', reported_product_id=product.product_id, seller_id=product.seller_id) }}">신고하기</a>
+        {% endif %}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</article>
+{% endblock %}

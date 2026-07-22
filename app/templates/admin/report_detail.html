@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">신고 상세 #{{ report.report_id }}</h1>
+  <a class="btn btn-outline-primary" href="{{ url_for('admin.reports') }}">목록</a>
+</div>
+<section class="bg-white border rounded-3 p-3 p-md-4 mb-3">
+  <p>신고자: {{ report.reporter.nickname if report.reporter else "-" }}</p>
+  <p>신고 유형: {{ report.report_type }}</p>
+  <p>처리 상태: {{ report.report_status }}</p>
+  <p>신고 날짜: {{ report.created_at }}</p>
+  <p>신고 사유: {{ report.reason }}</p>
+  {% if report.reported_user %}
+    <p>대상 사용자: {{ report.reported_user.nickname }} / 상태 {{ report.reported_user.account_status }} / 신고 {{ report.reported_user.report_count }}회</p>
+  {% endif %}
+  {% if report.reported_product %}
+    <p>대상 상품: {{ report.reported_product.product_name }} / 상태 {{ product_status_label(report.reported_product.product_status) }} / 신고 {{ report.reported_product.report_count }}회</p>
+  {% endif %}
+</section>
+
+<section class="bg-white border rounded-3 p-3 p-md-4">
+  <h2 class="h5">관리자 조치</h2>
+  <form method="post" action="{{ url_for('admin.report_action', report_id=report.report_id) }}" class="vstack gap-3">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label class="form-label">관리자 사유
+      <textarea class="form-control" name="reason" rows="3" maxlength="1000"></textarea>
+    </label>
+    <div class="d-flex flex-wrap gap-2">
+      <button class="btn btn-outline-primary" type="submit" name="action" value="review">검토 중으로 변경</button>
+      <button class="btn btn-success" type="submit" name="action" value="approve">신고 승인</button>
+      <button class="btn btn-outline-secondary" type="submit" name="action" value="reject">신고 기각</button>
+      {% if report.reported_user %}
+        <button class="btn btn-warning" type="submit" name="action" value="restrict_user">사용자 이용 제한</button>
+        <button class="btn btn-danger" type="submit" name="action" value="block_user">사용자 차단</button>
+        <button class="btn btn-outline-success" type="submit" name="action" value="activate_user">사용자 차단 해제</button>
+      {% endif %}
+      {% if report.reported_product %}
+        <button class="btn btn-danger" type="submit" name="action" value="block_product">상품 차단</button>
+        <button class="btn btn-outline-success" type="submit" name="action" value="unblock_product">상품 차단 해제</button>
+      {% endif %}
+    </div>
+  </form>
+</section>
+{% endblock %}
