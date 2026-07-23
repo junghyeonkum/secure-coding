@@ -7,6 +7,8 @@ from app.services.audit import record_audit
 from app.utils.security import admin_required
 
 bp = Blueprint("admin", __name__, url_prefix="/admin")
+USER_REPORT_THRESHOLD = 3
+ALLOWED_ACCOUNT_STATUSES = {"active", "restricted", "blocked"}
 
 
 @bp.route("/")
@@ -19,6 +21,7 @@ def dashboard():
         restricted_users=User.query.filter_by(account_status="restricted").count(),
         blocked_users=User.query.filter_by(account_status="blocked").count(),
         blocked_products=Product.query.filter_by(product_status="blocked").count(),
+        user_report_threshold=USER_REPORT_THRESHOLD,
     )
 
 
@@ -28,6 +31,46 @@ def dashboard():
 def reports():
     report_list = Report.query.order_by(Report.created_at.desc()).all()
     return render_template("admin/reports.html", reports=report_list)
+
+
+@bp.route("/users")
+@login_required
+@admin_required
+def users():
+    user_list = User.query.order_by(User.report_count.desc(), User.created_at.desc()).all()
+    return render_template(
+        "admin/users.html",
+        users=user_list,
+        user_report_threshold=USER_REPORT_THRESHOLD,
+    )
+
+
+@bp.post("/users/<int:user_id>/status")
+@login_required
+@admin_required
+def update_user_status(user_id):
+    user = db.session.get(User, user_id) or abort(404)
+    new_status = request.form.get("account_status", "")
+    reason = request.form.get("reason", "").strip()
+
+    if new_status not in ALLOWED_ACCOUNT_STATUSES:
+        abort(400)
+    if user.user_id == current_user.user_id and new_status == "blocked":
+        abort(400)
+
+    old_status = user.account_status
+    user.account_status = new_status
+    action = f"user:status:{old_status}->{new_status}"
+    record_audit(
+        current_user.user_id,
+        action,
+        "user",
+        user.user_id,
+        reason=reason,
+    )
+    db.session.commit()
+    flash("사용자 계정 상태가 변경되었습니다.")
+    return redirect(url_for("admin.users"))
 
 
 @bp.route("/reports/<int:report_id>")

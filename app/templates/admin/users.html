@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1 class="h3 mb-0">신고 사용자 관리</h1>
+  <a class="btn btn-outline-primary" href="{{ url_for('admin.dashboard') }}">대시보드</a>
+</div>
+
+<p class="text-secondary">
+  누적 신고 {{ user_report_threshold }}회 이상인 사용자는 제재 검토 대상으로 표시됩니다.
+  신고 횟수만으로 자동 차단하지 않으며, 최종 조치는 관리자가 직접 수행합니다.
+</p>
+
+<div class="table-responsive bg-white border rounded-3">
+  <table class="table align-middle mb-0">
+    <thead>
+      <tr>
+        <th>회원 번호</th>
+        <th>아이디</th>
+        <th>닉네임</th>
+        <th>누적 신고</th>
+        <th>계정 상태</th>
+        <th>가입 일시</th>
+        <th>관리자 조치</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+        <tr>
+          <td>{{ user.user_id }}</td>
+          <td>{{ user.username }}</td>
+          <td>{{ user.nickname }}</td>
+          <td>
+            {{ user.report_count }}
+            {% if user.report_count >= user_report_threshold %}
+              <span class="badge text-bg-warning ms-1">제재 검토</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if user.account_status == "active" %}
+              <span class="badge text-bg-success">정상</span>
+            {% elif user.account_status == "restricted" %}
+              <span class="badge text-bg-warning">이용 제한</span>
+            {% elif user.account_status == "blocked" %}
+              <span class="badge text-bg-danger">차단</span>
+            {% else %}
+              <span class="badge text-bg-secondary">{{ user.account_status }}</span>
+            {% endif %}
+          </td>
+          <td>{{ user.created_at }}</td>
+          <td>
+            <form method="post" action="{{ url_for('admin.update_user_status', user_id=user.user_id) }}" class="vstack gap-2">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <input class="form-control form-control-sm" name="reason" maxlength="1000" placeholder="조치 사유">
+              <div class="d-flex flex-wrap gap-1">
+                <button class="btn btn-sm btn-outline-success" type="submit" name="account_status" value="active">정상 이용</button>
+                <button class="btn btn-sm btn-warning" type="submit" name="account_status" value="restricted">이용 제한</button>
+                <button class="btn btn-sm btn-danger" type="submit" name="account_status" value="blocked">계정 차단</button>
+              </div>
+            </form>
+          </td>
+        </tr>
+      {% else %}
+        <tr>
+          <td colspan="7" class="text-center text-secondary py-4">사용자가 없습니다.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -48,6 +48,14 @@ def admin_action(client, report_id, action, reason="admin reason"):
     )
 
 
+def user_status_action(client, user_id, status, reason="status reason"):
+    return client.post(
+        f"/admin/users/{user_id}/status",
+        data={"account_status": status, "reason": reason},
+        follow_redirects=True,
+    )
+
+
 def test_regular_user_cannot_access_admin(client, app):
     with app.app_context():
         create_user("user")
@@ -77,6 +85,57 @@ def test_admin_restricts_user(client, app):
     assert response.status_code == 200
     with app.app_context():
         assert db.session.get(User, target_id).account_status == "restricted"
+
+
+def test_regular_user_cannot_change_user_status(client, app):
+    with app.app_context():
+        create_user("regular")
+        target = create_user("target")
+        target_id = target.user_id
+    login(client, "regular")
+    response = client.post(
+        f"/admin/users/{target_id}/status",
+        data={"account_status": "restricted", "reason": "bad user"},
+    )
+    assert response.status_code == 403
+
+
+def test_admin_user_management_page_shows_report_counts(client, app):
+    with app.app_context():
+        create_admin()
+        target = create_user("target")
+        target.report_count = 3
+        db.session.commit()
+    login(client, "admin", "Admin1234!")
+    response = client.get("/admin/users")
+    assert response.status_code == 200
+    assert "target".encode() in response.data
+    assert "제재 검토".encode() in response.data
+
+
+def test_admin_changes_user_status_to_restricted(client, app):
+    with app.app_context():
+        create_admin()
+        target = create_user("target")
+        target_id = target.user_id
+    login(client, "admin", "Admin1234!")
+    response = user_status_action(client, target_id, "restricted", "review required")
+    assert response.status_code == 200
+    with app.app_context():
+        assert db.session.get(User, target_id).account_status == "restricted"
+
+
+def test_admin_changes_user_status_to_blocked_and_login_is_blocked(client, app):
+    with app.app_context():
+        create_admin()
+        target = create_user("target")
+        target_id = target.user_id
+    login(client, "admin", "Admin1234!")
+    response = user_status_action(client, target_id, "blocked", "severe abuse")
+    assert response.status_code == 200
+    client.post("/auth/logout")
+    response = client.post("/auth/login", data={"username": "target", "password": "Password1!"})
+    assert response.status_code == 401
 
 
 def test_blocked_user_cannot_login(client, app):
@@ -114,6 +173,32 @@ def test_restricted_user_major_actions_blocked(client, app):
             "reason": "악성 상품 신고입니다.",
         },
     ).status_code == 403
+
+
+def test_restricted_user_blocked_until_admin_activates(client, app):
+    with app.app_context():
+        create_admin()
+        seller = create_user("seller")
+        target = create_user("target")
+        product = create_product(seller)
+        target_id = target.user_id
+        product_id = product.product_id
+
+    login(client, "admin", "Admin1234!")
+    user_status_action(client, target_id, "restricted")
+    client.post("/auth/logout")
+
+    login(client, "target")
+    assert client.post("/products/new", data={"product_name": "x"}).status_code == 403
+    assert client.post(f"/transactions/buy/{product_id}").status_code == 403
+    client.post("/auth/logout")
+
+    login(client, "admin", "Admin1234!")
+    user_status_action(client, target_id, "active")
+    client.post("/auth/logout")
+
+    login(client, "target")
+    assert client.post(f"/transactions/buy/{product_id}").status_code == 302
 
 
 def test_blocked_product_excluded_from_listing(client, app):
@@ -186,3 +271,20 @@ def test_admin_action_audit_log_saved(client, app):
         assert audit is not None
         assert audit.report_id == report_id
         assert audit.reason == "policy violation"
+
+
+def test_user_status_action_audit_log_saved(client, app):
+    with app.app_context():
+        create_admin()
+        target = create_user("target")
+        target_id = target.user_id
+    login(client, "admin", "Admin1234!")
+    user_status_action(client, target_id, "restricted", reason="multiple reports")
+    with app.app_context():
+        audit = AuditLog.query.filter_by(
+            action="user:status:active->restricted",
+            target_type="user",
+            target_id=target_id,
+        ).first()
+        assert audit is not None
+        assert audit.reason == "multiple reports"
